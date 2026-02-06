@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,25 +29,234 @@ const (
 // TenantSpec defines the desired state of Tenant.
 // +k8s:openapi-gen=true
 type TenantSpec struct {
-	// neonClusterRef is a reference to the NeonCluster resource this tenant belongs to
-	// +required
-	NeonClusterRef *v1.ObjectReference `json:"neonClusterRef"`
-
-	// databaseName is the name of the database for this tenant
-	// +required
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=63
-	DatabaseName string `json:"databaseName"`
-
-	// ownerRole is the name of the owner role for this tenant
+	// checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
 	// +optional
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=63
-	OwnerRole string `json:"ownerRole,omitempty"`
+	// +kubebuilder:default=268435456
+	// +kubebuilder:validation:Minimum=0
+	CheckpointDistance int64 `json:"checkpointDistance,omitempty"`
 
-	// connectionSecret is a reference to a secret containing connection details
+	// checkpointTimeout defines the maximum time between checkpoints
 	// +optional
-	ConnectionSecret *v1.SecretReference `json:"connectionSecret,omitempty"`
+	// +kubebuilder:default="10m"
+	CheckpointTimeout string `json:"checkpointTimeout,omitempty"`
+
+	// compactionTargetSize defines the target layer size for image/delta layers (L1 layer file size)
+	// +optional
+	// +kubebuilder:default=134217728
+	// +kubebuilder:validation:Minimum=0
+	CompactionTargetSize int64 `json:"compactionTargetSize,omitempty"`
+
+	// compactionPeriod defines how often to run compaction
+	// +optional
+	// +kubebuilder:default="20s"
+	CompactionPeriod string `json:"compactionPeriod,omitempty"`
+
+	// compactionThreshold defines the threshold for triggering compaction
+	// +optional
+	// +kubebuilder:default=10
+	// +kubebuilder:validation:Minimum=0
+	CompactionThreshold int32 `json:"compactionThreshold,omitempty"`
+
+	// compactionUpperLimit defines the maximum layers to compact before memory limits
+	// +optional
+	// +kubebuilder:default=10
+	// +kubebuilder:validation:Minimum=0
+	CompactionUpperLimit int32 `json:"compactionUpperLimit,omitempty"`
+
+	// compactionAlgorithm defines the algorithm to use for layer compaction
+	// +optional
+	// +kubebuilder:default="Legacy"
+	CompactionAlgorithm string `json:"compactionAlgorithm,omitempty"`
+
+	// compactionShardAncestor enables shard-aware compaction
+	// +optional
+	// +kubebuilder:default=true
+	CompactionShardAncestor bool `json:"compactionShardAncestor,omitempty"`
+
+	// compactionL0First enables L0 compaction pass for responsiveness
+	// +optional
+	// +kubebuilder:default=true
+	CompactionL0First bool `json:"compactionL0First,omitempty"`
+
+	// compactionL0Semaphore enables L0 compaction semaphore for concurrency control
+	// +optional
+	// +kubebuilder:default=true
+	CompactionL0Semaphore bool `json:"compactionL0Semaphore,omitempty"`
+
+	// l0FlushDelayThreshold defines the L0 flush delay threshold
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	L0FlushDelayThreshold *int32 `json:"l0FlushDelayThreshold,omitempty"`
+
+	// l0FlushStallThreshold defines the L0 stall threshold
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	L0FlushStallThreshold *int32 `json:"l0FlushStallThreshold,omitempty"`
+
+	// gcHorizon defines how far back to retain data
+	// +optional
+	// +kubebuilder:default=67108864
+	// +kubebuilder:validation:Minimum=0
+	GcHorizon int64 `json:"gcHorizon,omitempty"`
+
+	// gcPeriod defines how often to run garbage collection
+	// +optional
+	// +kubebuilder:default="1h"
+	GcPeriod string `json:"gcPeriod,omitempty"`
+
+	// imageCreationThreshold defines after how many L0 layers to create an image layer
+	// +optional
+	// +kubebuilder:default=3
+	// +kubebuilder:validation:Minimum=0
+	ImageCreationThreshold int32 `json:"imageCreationThreshold,omitempty"`
+
+	// imageLayerForceCreationPeriod forces image layer creation at interval
+	// +optional
+	ImageLayerForceCreationPeriod *string `json:"imageLayerForceCreationPeriod,omitempty"`
+
+	// pitrInterval defines the point-in-time recovery window
+	// +optional
+	// +kubebuilder:default="168h"
+	PitrInterval string `json:"pitrInterval,omitempty"`
+
+	// walreceiverConnectTimeout defines the timeout for WAL receiver connection
+	// +optional
+	// +kubebuilder:default="10s"
+	WalreceiverConnectTimeout string `json:"walreceiverConnectTimeout,omitempty"`
+
+	// laggingWalTimeout defines the timeout before disconnecting slow WAL receiver
+	// +optional
+	// +kubebuilder:default="10s"
+	LaggingWalTimeout string `json:"laggingWalTimeout,omitempty"`
+
+	// maxLsnWalLag defines the maximum WAL lag allowed (supports 1GB/s throughput)
+	// +optional
+	// +kubebuilder:default=1073741824
+	// +kubebuilder:validation:Minimum=0
+	MaxLsnWalLag *int64 `json:"maxLsnWalLag,omitempty"`
+
+	// evictionPolicy defines the page eviction strategy
+	// +optional
+	// +kubebuilder:default="NoEviction"
+	// +kubebuilder:validation:Enum=NoEviction;AlwaysEvict
+	EvictionPolicy string `json:"evictionPolicy,omitempty"`
+
+	// minResidentSizeOverride overrides the minimum resident size threshold
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	MinResidentSizeOverride *int64 `json:"minResidentSizeOverride,omitempty"`
+
+	// evictionsLowResidenceDurationMetricThreshold defines the metric threshold for low residence time
+	// +optional
+	// +kubebuilder:default="24h"
+	EvictionsLowResidenceDurationMetricThreshold string `json:"evictionsLowResidenceDurationMetricThreshold,omitempty"`
+
+	// heatmapPeriod defines the heatmap refresh period (0 = disabled)
+	// +optional
+	// +kubebuilder:default="0s"
+	HeatmapPeriod string `json:"heatmapPeriod,omitempty"`
+
+	// lazySlruDownload enables lazy download strategy
+	// +optional
+	// +kubebuilder:default=false
+	LazySlruDownload bool `json:"lazySlruDownload,omitempty"`
+
+	// timelineGetThrottle defines the rate limiting configuration for page reads
+	// +optional
+	TimelineGetThrottle *ThrottleConfig `json:"timelineGetThrottle,omitempty"`
+
+	// imageLayerCreationCheckThreshold defines how many L0 layers to ingest WAL for before checking image creation
+	// +optional
+	// +kubebuilder:default=2
+	// +kubebuilder:validation:Minimum=0
+	ImageLayerCreationCheckThreshold int32 `json:"imageLayerCreationCheckThreshold,omitempty"`
+
+	// imageCreationPreemptThreshold preempts image creation if L0 backpressure
+	// +optional
+	// +kubebuilder:default=3
+	// +kubebuilder:validation:Minimum=0
+	ImageCreationPreemptThreshold int32 `json:"imageCreationPreemptThreshold,omitempty"`
+
+	// lsnLeaseLength defines the LSN lease duration for read consistency
+	// +optional
+	// +kubebuilder:default="10m"
+	LsnLeaseLength string `json:"lsnLeaseLength,omitempty"`
+
+	// lsnLeaseLengthForTs defines the LSN lease duration for timestamp queries
+	// +optional
+	// +kubebuilder:default="60s"
+	LsnLeaseLengthForTs string `json:"lsnLeaseLengthForTs,omitempty"`
+
+	// timelineOffloading enables timeline offloading to secondary nodes
+	// +optional
+	// +kubebuilder:default=true
+	TimelineOffloading bool `json:"timelineOffloading,omitempty"`
+
+	// relSizeV2Enabled enables relation size v2 calculation
+	// +optional
+	// +kubebuilder:default=false
+	RelSizeV2Enabled bool `json:"relSizeV2Enabled,omitempty"`
+
+	// gcCompactionEnabled enables GC compaction pass
+	// +optional
+	// +kubebuilder:default=true
+	GcCompactionEnabled bool `json:"gcCompactionEnabled,omitempty"`
+
+	// gcCompactionVerification verifies GC compaction results
+	// +optional
+	// +kubebuilder:default=true
+	GcCompactionVerification bool `json:"gcCompactionVerification,omitempty"`
+
+	// gcCompactionInitialThresholdKb defines the initial threshold for GC compaction in KB
+	// +optional
+	// +kubebuilder:default=5368709
+	// +kubebuilder:validation:Minimum=0
+	GcCompactionInitialThresholdKb int64 `json:"gcCompactionInitialThresholdKb,omitempty"`
+
+	// gcCompactionRatioPercent defines the compaction ratio percentage for GC
+	// +optional
+	// +kubebuilder:default=100
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=100
+	GcCompactionRatioPercent int64 `json:"gcCompactionRatioPercent,omitempty"`
+
+	// samplingRatio defines the sampling configuration for metrics
+	// +optional
+	SamplingRatio *SamplingRatio `json:"samplingRatio,omitempty"`
+
+	// relsizeSnapshotCacheCapacity defines the snapshot cache size for relation size
+	// +optional
+	// +kubebuilder:default=1000
+	// +kubebuilder:validation:Minimum=0
+	RelsizeSnapshotCacheCapacity int32 `json:"relsizeSnapshotCacheCapacity,omitempty"`
+
+	// basebackupCacheEnabled enables basebackup caching
+	// +optional
+	// +kubebuilder:default=false
+	BasebackupCacheEnabled bool `json:"basebackupCacheEnabled,omitempty"`
+}
+
+// ThrottleConfig defines rate limiting configuration for page reads
+// +k8s:openapi-gen=true
+type ThrottleConfig struct {
+	// enabled defines if throttling is enabled
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// rps defines requests per second limit
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	Rps *int32 `json:"rps,omitempty"`
+}
+
+// SamplingRatio defines sampling configuration for metrics
+// +k8s:openapi-gen=true
+type SamplingRatio struct {
+	// ratio defines the sampling ratio value
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=1
+	Ratio *string `json:"ratio,omitempty"`
 }
 
 // TenantStatus defines the observed state of Tenant.
