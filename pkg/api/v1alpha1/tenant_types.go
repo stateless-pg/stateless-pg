@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,6 +30,10 @@ const (
 // TenantSpec defines the desired state of Tenant.
 // +k8s:openapi-gen=true
 type TenantSpec struct {
+	// neonClusterRef is a reference to the NeonCluster resource this tenant belongs to
+	// +required
+	NeonClusterRef *v1.ObjectReference `json:"neonClusterRef"`
+
 	// checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
 	// +optional
 	// +kubebuilder:default=268435456
