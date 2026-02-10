@@ -30,6 +30,21 @@ const (
 // TenantSpec defines the desired state of Tenant.
 // +k8s:openapi-gen=true
 type TenantSpec struct {
+	
+	// generation defines the generation counter for the tenant shards
+	// +optional
+	// +kubebuilder:default=0
+	// +kubebuilder:validation:Minimum=0
+	Generation int64 `json:"generation,omitempty"`
+
+	// config defines the configuration parameters for the tenant
+	// +optional
+	Config *TenantConfig `json:"config,omitempty"`
+}
+
+// TenantConfig defines the desired state of Tenant.
+// +k8s:openapi-gen=true
+type TenantConfig struct {
 	// neonClusterRef is a reference to the NeonCluster resource this tenant belongs to
 	// +required
 	NeonClusterRef *v1.ObjectReference `json:"neonClusterRef"`
@@ -239,6 +254,22 @@ type TenantSpec struct {
 	// +optional
 	// +kubebuilder:default=false
 	BasebackupCacheEnabled bool `json:"basebackupCacheEnabled,omitempty"`
+}
+
+// ShardParameters defines sharding configuration for the tenant
+// +k8s:openapi-gen=true
+type ShardParameters struct {
+	// count defines the number of shards (1 = unsharded)
+	// +optional
+	// +kubebuilder:default=1
+	// +kubebuilder:validation:Minimum=1
+	Count int32 `json:"count,omitempty"`
+
+	// stripeSize defines the stripe size in bytes (default: 8192 bytes)
+	// +optional
+	// +kubebuilder:default=8192
+	// +kubebuilder:validation:Minimum=0
+	StripeSize int64 `json:"stripe_size,omitempty"`
 }
 
 // ThrottleConfig defines rate limiting configuration for page reads
