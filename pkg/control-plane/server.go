@@ -25,7 +25,7 @@ type ControlPlaneServer struct {
 
 const (
 	ServiceName       = "control-plane"
-	controllerName    = "control-plane"
+	serverName    = "control-plane-server"
 	httpPort          = ":9090"
 	httpsPort         = ":9443"
 	certPath          = "/etc/control-plane/certs/tls.crt"
@@ -86,7 +86,7 @@ func NewControlPlaneServer(enableTLSFlag bool, enableJWTFlag bool, logger *slog.
 		addr = httpsPort
 	}
 	enableJWT = enableJWTFlag
-	logger = logger.With("component", controllerName)
+	logger = logger.With("component", serverName)
 
 	// Create kubernetes clientset for direct client-go operations
 	kclient, err := kubernetes.NewForConfig(config)
