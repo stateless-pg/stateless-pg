@@ -66,8 +66,18 @@ func (o *Operator) sync(ctx context.Context, name, namespace string) error {
 
 	logger.Info("Sync tenant")
 
-	// TODO: Add tenant reconciliation logic here
+	// Check if the referenced NeonCluster exists
+	neonCluster := &corev1alpha1.NeonCluster{}
+	neonClusterKey := client.ObjectKey{
+		Name:      tenant.Spec.Config.NeonClusterRef.Name,
+		Namespace: tenant.Spec.Config.NeonClusterRef.Namespace,
+	}
+	if err := o.nclient.Get(ctx, neonClusterKey, neonCluster); err != nil {
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("referenced NeonCluster %s not found", neonClusterKey)
+		}
+		return fmt.Errorf("failed to get referenced NeonCluster: %w", err)
+	}
 
-	logger.Info("Tenant synced successfully")
 	return nil
 }

@@ -30,7 +30,7 @@ const (
 // TenantSpec defines the desired state of Tenant.
 // +k8s:openapi-gen=true
 type TenantSpec struct {
-	
+
 	// generation defines version number for split-brain safety
 	// +optional
 	// +kubebuilder:default=0
@@ -59,7 +59,7 @@ type TenantSpec struct {
 type TenantConfig struct {
 	// neonClusterRef is a reference to the NeonCluster resource this tenant belongs to
 	// +required
-	NeonClusterRef *v1.ObjectReference `json:"neonClusterRef"`
+	NeonClusterRef v1.ObjectReference `json:"neonClusterRef"`
 
 	// checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
 	// Default: 268435456 (256 MB)

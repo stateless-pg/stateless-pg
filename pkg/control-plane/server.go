@@ -25,7 +25,7 @@ type ControlPlaneServer struct {
 
 const (
 	ServiceName       = "control-plane"
-	serverName    = "control-plane-server"
+	serverName        = "control-plane-server"
 	httpPort          = ":9090"
 	httpsPort         = ":9443"
 	certPath          = "/etc/control-plane/certs/tls.crt"

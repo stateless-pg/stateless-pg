@@ -45,4 +45,3 @@ func (r *Operator) SetupWithManager(mgr ctrl.Manager) error {
 		Named("tenant").
 		Complete(r)
 }
-
