@@ -50,34 +50,40 @@ type TenantConfig struct {
 	NeonClusterRef *v1.ObjectReference `json:"neonClusterRef"`
 
 	// checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
+	// Default: 268435456 (256 MB)
 	// +optional
 	// +kubebuilder:default=268435456
 	// +kubebuilder:validation:Minimum=0
 	CheckpointDistance int64 `json:"checkpointDistance,omitempty"`
 
 	// checkpointTimeout defines the maximum time between checkpoints
+	// Default: 10 minutes
 	// +optional
 	// +kubebuilder:default="10m"
 	CheckpointTimeout string `json:"checkpointTimeout,omitempty"`
 
 	// compactionTargetSize defines the target layer size for image/delta layers (L1 layer file size)
+	// Default: 134217728 (128 MB)
 	// +optional
 	// +kubebuilder:default=134217728
 	// +kubebuilder:validation:Minimum=0
 	CompactionTargetSize int64 `json:"compactionTargetSize,omitempty"`
 
 	// compactionPeriod defines how often to run compaction
+	// Default: 20 seconds
 	// +optional
 	// +kubebuilder:default="20s"
 	CompactionPeriod string `json:"compactionPeriod,omitempty"`
 
 	// compactionThreshold defines the threshold for triggering compaction
+	// Default: 10 layers
 	// +optional
 	// +kubebuilder:default=10
 	// +kubebuilder:validation:Minimum=0
 	CompactionThreshold int32 `json:"compactionThreshold,omitempty"`
 
 	// compactionUpperLimit defines the maximum layers to compact before memory limits
+	// Default: 10 layers
 	// +optional
 	// +kubebuilder:default=10
 	// +kubebuilder:validation:Minimum=0
@@ -114,17 +120,20 @@ type TenantConfig struct {
 	L0FlushStallThreshold *int32 `json:"l0FlushStallThreshold,omitempty"`
 
 	// gcHorizon defines how far back to retain data
+	// Default: 67108864 (64 MB)
 	// +optional
 	// +kubebuilder:default=67108864
 	// +kubebuilder:validation:Minimum=0
 	GcHorizon int64 `json:"gcHorizon,omitempty"`
 
 	// gcPeriod defines how often to run garbage collection
+	// Default: 1 hour
 	// +optional
 	// +kubebuilder:default="1h"
 	GcPeriod string `json:"gcPeriod,omitempty"`
 
 	// imageCreationThreshold defines after how many L0 layers to create an image layer
+	// Default: 3 layers
 	// +optional
 	// +kubebuilder:default=3
 	// +kubebuilder:validation:Minimum=0
@@ -135,27 +144,33 @@ type TenantConfig struct {
 	ImageLayerForceCreationPeriod *string `json:"imageLayerForceCreationPeriod,omitempty"`
 
 	// pitrInterval defines the point-in-time recovery window
+	// Default: 7 days retention
 	// +optional
 	// +kubebuilder:default="168h"
 	PitrInterval string `json:"pitrInterval,omitempty"`
 
 	// walreceiverConnectTimeout defines the timeout for WAL receiver connection
+	// Default: 10 seconds
 	// +optional
 	// +kubebuilder:default="10s"
 	WalreceiverConnectTimeout string `json:"walreceiverConnectTimeout,omitempty"`
 
 	// laggingWalTimeout defines the timeout before disconnecting slow WAL receiver
+	// Default: 10 seconds
 	// +optional
 	// +kubebuilder:default="10s"
 	LaggingWalTimeout string `json:"laggingWalTimeout,omitempty"`
 
 	// maxLsnWalLag defines the maximum WAL lag allowed (supports 1GB/s throughput)
+	// Default: 1073741824 (1 GB)
 	// +optional
 	// +kubebuilder:default=1073741824
 	// +kubebuilder:validation:Minimum=0
 	MaxLsnWalLag *int64 `json:"maxLsnWalLag,omitempty"`
 
 	// evictionPolicy defines the page eviction strategy
+	// Default: NoEviction (don't evict pages)
+	// Valid values: NoEviction, AlwaysEvict
 	// +optional
 	// +kubebuilder:default="NoEviction"
 	// +kubebuilder:validation:Enum=NoEviction;AlwaysEvict
@@ -198,16 +213,19 @@ type TenantConfig struct {
 	ImageCreationPreemptThreshold int32 `json:"imageCreationPreemptThreshold,omitempty"`
 
 	// lsnLeaseLength defines the LSN lease duration for read consistency
+	// Default: 10 minutes
 	// +optional
 	// +kubebuilder:default="10m"
 	LsnLeaseLength string `json:"lsnLeaseLength,omitempty"`
 
 	// lsnLeaseLengthForTs defines the LSN lease duration for timestamp queries
+	// Default: 60 seconds
 	// +optional
 	// +kubebuilder:default="60s"
 	LsnLeaseLengthForTs string `json:"lsnLeaseLengthForTs,omitempty"`
 
 	// timelineOffloading enables timeline offloading to secondary nodes
+	// Default: true (enabled)
 	// +optional
 	// +kubebuilder:default=true
 	TimelineOffloading bool `json:"timelineOffloading,omitempty"`
@@ -218,22 +236,26 @@ type TenantConfig struct {
 	RelSizeV2Enabled bool `json:"relSizeV2Enabled,omitempty"`
 
 	// gcCompactionEnabled enables GC compaction pass
+	// Default: true (enabled)
 	// +optional
 	// +kubebuilder:default=true
 	GcCompactionEnabled bool `json:"gcCompactionEnabled,omitempty"`
 
 	// gcCompactionVerification verifies GC compaction results
+	// Default: true (enabled)
 	// +optional
 	// +kubebuilder:default=true
 	GcCompactionVerification bool `json:"gcCompactionVerification,omitempty"`
 
 	// gcCompactionInitialThresholdKb defines the initial threshold for GC compaction in KB
+	// Default: 5368709 (5 GB)
 	// +optional
 	// +kubebuilder:default=5368709
 	// +kubebuilder:validation:Minimum=0
 	GcCompactionInitialThresholdKb int64 `json:"gcCompactionInitialThresholdKb,omitempty"`
 
 	// gcCompactionRatioPercent defines the compaction ratio percentage for GC
+	// Default: 100%
 	// +optional
 	// +kubebuilder:default=100
 	// +kubebuilder:validation:Minimum=0
@@ -245,6 +267,7 @@ type TenantConfig struct {
 	SamplingRatio *SamplingRatio `json:"samplingRatio,omitempty"`
 
 	// relsizeSnapshotCacheCapacity defines the snapshot cache size for relation size
+	// Default: 1000 entries
 	// +optional
 	// +kubebuilder:default=1000
 	// +kubebuilder:validation:Minimum=0
