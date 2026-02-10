@@ -31,7 +31,7 @@ const (
 // +k8s:openapi-gen=true
 type TenantSpec struct {
 	
-	// generation defines the generation counter for the tenant shards
+	// generation defines version number for split-brain safety
 	// +optional
 	// +kubebuilder:default=0
 	// +kubebuilder:validation:Minimum=0
@@ -39,7 +39,7 @@ type TenantSpec struct {
 
 	// config defines the configuration parameters for the tenant
 	// +optional
-	Config *TenantConfig `json:"config,omitempty"`
+	Config TenantConfig `json:"config,omitempty"`
 }
 
 // TenantConfig defines the desired state of Tenant.
@@ -265,7 +265,8 @@ type ShardParameters struct {
 	// +kubebuilder:validation:Minimum=1
 	Count int32 `json:"count,omitempty"`
 
-	// stripeSize defines the stripe size in bytes (default: 8192 bytes)
+	// stripeSize defines the granularity (in bytes) for distributing keys across shards
+	// Common values: 8192 (8 KB - Default), 16384 (16 KB), 32768 (32 KB)
 	// +optional
 	// +kubebuilder:default=8192
 	// +kubebuilder:validation:Minimum=0
