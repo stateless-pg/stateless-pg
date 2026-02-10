@@ -16,3 +16,29 @@ limitations under the License.
 
 package controlplane
 
+import (
+	"context"
+	"fmt"
+
+	ctrl "sigs.k8s.io/controller-runtime"
+
+	corev1alpha1 "github.com/stateless-pg/stateless-pg/pkg/api/v1alpha1"
+)
+
+// Reconcile handles the reconciliation loop for Tenant resources
+func (r *Operator) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	err := r.sync(ctx, req.Name, req.Namespace)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("Failed to sync tenant %s/%s: %w", req.Namespace, req.Name, err)
+	}
+	return ctrl.Result{}, nil
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *Operator) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&corev1alpha1.Tenant{}).
+		Named("tenant").
+		Complete(r)
+}
+
