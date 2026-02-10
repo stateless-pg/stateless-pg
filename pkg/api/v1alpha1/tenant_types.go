@@ -37,6 +37,18 @@ type TenantSpec struct {
 	// +kubebuilder:validation:Minimum=0
 	Generation int64 `json:"generation,omitempty"`
 
+	// placementPolicy defines the placement strategy for the tenant
+	// Valid values:
+	// - Attached(0): Single node, development (default)
+	// - Attached(1): HA with failover
+	// - Attached(2): HA with multiple replicas
+	// - Secondary: Onboarding/migration standby
+	// - Detached: Archived/idle data
+	// +optional
+	// +kubebuilder:default="Attached(0)"
+	// +kubebuilder:validation:Enum="Attached(0)";"Attached(1)";"Attached(2)";Secondary;Detached
+	PlacementPolicy string `json:"placementPolicy,omitempty"`
+
 	// config defines the configuration parameters for the tenant
 	// +optional
 	Config TenantConfig `json:"config,omitempty"`
