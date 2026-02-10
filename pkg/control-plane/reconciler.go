@@ -25,6 +25,10 @@ import (
 	corev1alpha1 "github.com/stateless-pg/stateless-pg/pkg/api/v1alpha1"
 )
 
+// +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants/finalizers,verbs=update
+
 // Reconcile handles the reconciliation loop for Tenant resources
 func (r *Operator) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	err := r.sync(ctx, req.Name, req.Namespace)

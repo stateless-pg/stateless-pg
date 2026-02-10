@@ -53,226 +53,335 @@ spec:
           spec:
             description: spec defines the desired state of Tenant
             properties:
-              basebackupCacheEnabled:
-                default: false
-                description: basebackupCacheEnabled enables basebackup caching
-                type: boolean
-              checkpointDistance:
-                default: 268435456
-                description: checkpointDistance defines the size threshold between
-                  checkpoints (L0 layer file size)
-                format: int64
-                minimum: 0
-                type: integer
-              checkpointTimeout:
-                default: 10m
-                description: checkpointTimeout defines the maximum time between checkpoints
-                type: string
-              compactionAlgorithm:
-                default: Legacy
-                description: compactionAlgorithm defines the algorithm to use for
-                  layer compaction
-                type: string
-              compactionL0First:
-                default: true
-                description: compactionL0First enables L0 compaction pass for responsiveness
-                type: boolean
-              compactionL0Semaphore:
-                default: true
-                description: compactionL0Semaphore enables L0 compaction semaphore
-                  for concurrency control
-                type: boolean
-              compactionPeriod:
-                default: 20s
-                description: compactionPeriod defines how often to run compaction
-                type: string
-              compactionShardAncestor:
-                default: true
-                description: compactionShardAncestor enables shard-aware compaction
-                type: boolean
-              compactionTargetSize:
-                default: 134217728
-                description: compactionTargetSize defines the target layer size for
-                  image/delta layers (L1 layer file size)
-                format: int64
-                minimum: 0
-                type: integer
-              compactionThreshold:
-                default: 10
-                description: compactionThreshold defines the threshold for triggering
-                  compaction
-                format: int32
-                minimum: 0
-                type: integer
-              compactionUpperLimit:
-                default: 10
-                description: compactionUpperLimit defines the maximum layers to compact
-                  before memory limits
-                format: int32
-                minimum: 0
-                type: integer
-              evictionPolicy:
-                default: NoEviction
-                description: evictionPolicy defines the page eviction strategy
-                enum:
-                - NoEviction
-                - AlwaysEvict
-                type: string
-              evictionsLowResidenceDurationMetricThreshold:
-                default: 24h
-                description: evictionsLowResidenceDurationMetricThreshold defines
-                  the metric threshold for low residence time
-                type: string
-              gcCompactionEnabled:
-                default: true
-                description: gcCompactionEnabled enables GC compaction pass
-                type: boolean
-              gcCompactionInitialThresholdKb:
-                default: 5368709
-                description: gcCompactionInitialThresholdKb defines the initial threshold
-                  for GC compaction in KB
-                format: int64
-                minimum: 0
-                type: integer
-              gcCompactionRatioPercent:
-                default: 100
-                description: gcCompactionRatioPercent defines the compaction ratio
-                  percentage for GC
-                format: int64
-                maximum: 100
-                minimum: 0
-                type: integer
-              gcCompactionVerification:
-                default: true
-                description: gcCompactionVerification verifies GC compaction results
-                type: boolean
-              gcHorizon:
-                default: 67108864
-                description: gcHorizon defines how far back to retain data
-                format: int64
-                minimum: 0
-                type: integer
-              gcPeriod:
-                default: 1h
-                description: gcPeriod defines how often to run garbage collection
-                type: string
-              heatmapPeriod:
-                default: 0s
-                description: heatmapPeriod defines the heatmap refresh period (0 =
-                  disabled)
-                type: string
-              imageCreationPreemptThreshold:
-                default: 3
-                description: imageCreationPreemptThreshold preempts image creation
-                  if L0 backpressure
-                format: int32
-                minimum: 0
-                type: integer
-              imageCreationThreshold:
-                default: 3
-                description: imageCreationThreshold defines after how many L0 layers
-                  to create an image layer
-                format: int32
-                minimum: 0
-                type: integer
-              imageLayerCreationCheckThreshold:
-                default: 2
-                description: imageLayerCreationCheckThreshold defines how many L0
-                  layers to ingest WAL for before checking image creation
-                format: int32
-                minimum: 0
-                type: integer
-              imageLayerForceCreationPeriod:
-                description: imageLayerForceCreationPeriod forces image layer creation
-                  at interval
-                type: string
-              l0FlushDelayThreshold:
-                description: l0FlushDelayThreshold defines the L0 flush delay threshold
-                format: int32
-                minimum: 0
-                type: integer
-              l0FlushStallThreshold:
-                description: l0FlushStallThreshold defines the L0 stall threshold
-                format: int32
-                minimum: 0
-                type: integer
-              laggingWalTimeout:
-                default: 10s
-                description: laggingWalTimeout defines the timeout before disconnecting
-                  slow WAL receiver
-                type: string
-              lazySlruDownload:
-                default: false
-                description: lazySlruDownload enables lazy download strategy
-                type: boolean
-              lsnLeaseLength:
-                default: 10m
-                description: lsnLeaseLength defines the LSN lease duration for read
-                  consistency
-                type: string
-              lsnLeaseLengthForTs:
-                default: 60s
-                description: lsnLeaseLengthForTs defines the LSN lease duration for
-                  timestamp queries
-                type: string
-              maxLsnWalLag:
-                default: 1073741824
-                description: maxLsnWalLag defines the maximum WAL lag allowed (supports
-                  1GB/s throughput)
-                format: int64
-                minimum: 0
-                type: integer
-              minResidentSizeOverride:
-                description: minResidentSizeOverride overrides the minimum resident
-                  size threshold
-                format: int64
-                minimum: 0
-                type: integer
-              pitrInterval:
-                default: 168h
-                description: pitrInterval defines the point-in-time recovery window
-                type: string
-              relSizeV2Enabled:
-                default: false
-                description: relSizeV2Enabled enables relation size v2 calculation
-                type: boolean
-              relsizeSnapshotCacheCapacity:
-                default: 1000
-                description: relsizeSnapshotCacheCapacity defines the snapshot cache
-                  size for relation size
-                format: int32
-                minimum: 0
-                type: integer
-              samplingRatio:
-                description: samplingRatio defines the sampling configuration for
-                  metrics
+              config:
+                description: config defines the configuration parameters for the tenant
                 properties:
-                  ratio:
-                    description: ratio defines the sampling ratio value
-                    type: string
-                type: object
-              timelineGetThrottle:
-                description: timelineGetThrottle defines the rate limiting configuration
-                  for page reads
-                properties:
-                  enabled:
-                    description: enabled defines if throttling is enabled
+                  basebackupCacheEnabled:
+                    default: false
+                    description: basebackupCacheEnabled enables basebackup caching
                     type: boolean
-                  rps:
-                    description: rps defines requests per second limit
+                  checkpointDistance:
+                    default: 268435456
+                    description: |-
+                      checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
+                      Default: 268435456 (256 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  checkpointTimeout:
+                    default: 10m
+                    description: |-
+                      checkpointTimeout defines the maximum time between checkpoints
+                      Default: 10 minutes
+                    type: string
+                  compactionAlgorithm:
+                    default: Legacy
+                    description: compactionAlgorithm defines the algorithm to use
+                      for layer compaction
+                    type: string
+                  compactionL0First:
+                    default: true
+                    description: compactionL0First enables L0 compaction pass for
+                      responsiveness
+                    type: boolean
+                  compactionL0Semaphore:
+                    default: true
+                    description: compactionL0Semaphore enables L0 compaction semaphore
+                      for concurrency control
+                    type: boolean
+                  compactionPeriod:
+                    default: 20s
+                    description: |-
+                      compactionPeriod defines how often to run compaction
+                      Default: 20 seconds
+                    type: string
+                  compactionShardAncestor:
+                    default: true
+                    description: compactionShardAncestor enables shard-aware compaction
+                    type: boolean
+                  compactionTargetSize:
+                    default: 134217728
+                    description: |-
+                      compactionTargetSize defines the target layer size for image/delta layers (L1 layer file size)
+                      Default: 134217728 (128 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  compactionThreshold:
+                    default: 10
+                    description: |-
+                      compactionThreshold defines the threshold for triggering compaction
+                      Default: 10 layers
                     format: int32
                     minimum: 0
                     type: integer
+                  compactionUpperLimit:
+                    default: 10
+                    description: |-
+                      compactionUpperLimit defines the maximum layers to compact before memory limits
+                      Default: 10 layers
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  evictionPolicy:
+                    default: NoEviction
+                    description: |-
+                      evictionPolicy defines the page eviction strategy
+                      Default: NoEviction (don't evict pages)
+                      Valid values: NoEviction, AlwaysEvict
+                    enum:
+                    - NoEviction
+                    - AlwaysEvict
+                    type: string
+                  evictionsLowResidenceDurationMetricThreshold:
+                    default: 24h
+                    description: evictionsLowResidenceDurationMetricThreshold defines
+                      the metric threshold for low residence time
+                    type: string
+                  gcCompactionEnabled:
+                    default: true
+                    description: |-
+                      gcCompactionEnabled enables GC compaction pass
+                      Default: true (enabled)
+                    type: boolean
+                  gcCompactionInitialThresholdKb:
+                    default: 5368709
+                    description: |-
+                      gcCompactionInitialThresholdKb defines the initial threshold for GC compaction in KB
+                      Default: 5368709 (5 GB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  gcCompactionRatioPercent:
+                    default: 100
+                    description: |-
+                      gcCompactionRatioPercent defines the compaction ratio percentage for GC
+                      Default: 100%
+                    format: int64
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  gcCompactionVerification:
+                    default: true
+                    description: |-
+                      gcCompactionVerification verifies GC compaction results
+                      Default: true (enabled)
+                    type: boolean
+                  gcHorizon:
+                    default: 67108864
+                    description: |-
+                      gcHorizon defines how far back to retain data
+                      Default: 67108864 (64 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  gcPeriod:
+                    default: 1h
+                    description: |-
+                      gcPeriod defines how often to run garbage collection
+                      Default: 1 hour
+                    type: string
+                  heatmapPeriod:
+                    default: 0s
+                    description: heatmapPeriod defines the heatmap refresh period
+                      (0 = disabled)
+                    type: string
+                  imageCreationPreemptThreshold:
+                    default: 3
+                    description: imageCreationPreemptThreshold preempts image creation
+                      if L0 backpressure
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageCreationThreshold:
+                    default: 3
+                    description: |-
+                      imageCreationThreshold defines after how many L0 layers to create an image layer
+                      Default: 3 layers
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageLayerCreationCheckThreshold:
+                    default: 2
+                    description: imageLayerCreationCheckThreshold defines how many
+                      L0 layers to ingest WAL for before checking image creation
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageLayerForceCreationPeriod:
+                    description: imageLayerForceCreationPeriod forces image layer
+                      creation at interval
+                    type: string
+                  l0FlushDelayThreshold:
+                    description: l0FlushDelayThreshold defines the L0 flush delay
+                      threshold
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  l0FlushStallThreshold:
+                    description: l0FlushStallThreshold defines the L0 stall threshold
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  laggingWalTimeout:
+                    default: 10s
+                    description: |-
+                      laggingWalTimeout defines the timeout before disconnecting slow WAL receiver
+                      Default: 10 seconds
+                    type: string
+                  lazySlruDownload:
+                    default: false
+                    description: lazySlruDownload enables lazy download strategy
+                    type: boolean
+                  lsnLeaseLength:
+                    default: 10m
+                    description: |-
+                      lsnLeaseLength defines the LSN lease duration for read consistency
+                      Default: 10 minutes
+                    type: string
+                  lsnLeaseLengthForTs:
+                    default: 60s
+                    description: |-
+                      lsnLeaseLengthForTs defines the LSN lease duration for timestamp queries
+                      Default: 60 seconds
+                    type: string
+                  maxLsnWalLag:
+                    default: 1073741824
+                    description: |-
+                      maxLsnWalLag defines the maximum WAL lag allowed (supports 1GB/s throughput)
+                      Default: 1073741824 (1 GB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  minResidentSizeOverride:
+                    description: minResidentSizeOverride overrides the minimum resident
+                      size threshold
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  neonClusterRef:
+                    description: neonClusterRef is a reference to the NeonCluster
+                      resource this tenant belongs to
+                    properties:
+                      apiVersion:
+                        description: API version of the referent.
+                        type: string
+                      fieldPath:
+                        description: |-
+                          If referring to a piece of an object instead of an entire object, this string
+                          should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                          For example, if the object reference is to a container within a pod, this would take on a value like:
+                          "spec.containers{name}" (where "name" refers to the name of the container that triggered
+                          the event) or if no container name is specified "spec.containers[2]" (container with
+                          index 2 in this pod). This syntax is chosen only to have some well-defined way of
+                          referencing a part of an object.
+                        type: string
+                      kind:
+                        description: |-
+                          Kind of the referent.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                        type: string
+                      name:
+                        description: |-
+                          Name of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        type: string
+                      namespace:
+                        description: |-
+                          Namespace of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+                        type: string
+                      resourceVersion:
+                        description: |-
+                          Specific resourceVersion to which this reference is made, if any.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+                        type: string
+                      uid:
+                        description: |-
+                          UID of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  pitrInterval:
+                    default: 168h
+                    description: |-
+                      pitrInterval defines the point-in-time recovery window
+                      Default: 7 days retention
+                    type: string
+                  relSizeV2Enabled:
+                    default: false
+                    description: relSizeV2Enabled enables relation size v2 calculation
+                    type: boolean
+                  relsizeSnapshotCacheCapacity:
+                    default: 1000
+                    description: |-
+                      relsizeSnapshotCacheCapacity defines the snapshot cache size for relation size
+                      Default: 1000 entries
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  samplingRatio:
+                    description: samplingRatio defines the sampling configuration
+                      for metrics
+                    properties:
+                      ratio:
+                        description: |-
+                          ratio defines the sampling ratio value as a string (e.g., "0.5" for 50%)
+                          Valid range: 0.0 to 1.0
+                        pattern: ^(0(\.\d+)?|1(\.0+)?)$
+                        type: string
+                    type: object
+                  timelineGetThrottle:
+                    description: timelineGetThrottle defines the rate limiting configuration
+                      for page reads
+                    properties:
+                      enabled:
+                        description: enabled defines if throttling is enabled
+                        type: boolean
+                      rps:
+                        description: rps defines requests per second limit
+                        format: int32
+                        minimum: 0
+                        type: integer
+                    type: object
+                  timelineOffloading:
+                    default: true
+                    description: |-
+                      timelineOffloading enables timeline offloading to secondary nodes
+                      Default: true (enabled)
+                    type: boolean
+                  walreceiverConnectTimeout:
+                    default: 10s
+                    description: |-
+                      walreceiverConnectTimeout defines the timeout for WAL receiver connection
+                      Default: 10 seconds
+                    type: string
+                required:
+                - neonClusterRef
                 type: object
-              timelineOffloading:
-                default: true
-                description: timelineOffloading enables timeline offloading to secondary
-                  nodes
-                type: boolean
-              walreceiverConnectTimeout:
-                default: 10s
-                description: walreceiverConnectTimeout defines the timeout for WAL
-                  receiver connection
+              generation:
+                default: 0
+                description: generation defines version number for split-brain safety
+                format: int64
+                minimum: 0
+                type: integer
+              placementPolicy:
+                default: Attached(0)
+                description: |-
+                  placementPolicy defines the placement strategy for the tenant
+                  Valid values:
+                  - Attached(0): Single node, development (default)
+                  - Attached(1): HA with failover
+                  - Attached(2): HA with multiple replicas
+                  - Secondary: Onboarding/migration standby
+                  - Detached: Archived/idle data
+                enum:
+                - Attached(0)
+                - Attached(1)
+                - Attached(2)
+                - Secondary
+                - Detached
                 type: string
             type: object
           status:

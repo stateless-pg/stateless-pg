@@ -79,3 +79,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - stateless-pg.com
+  resources:
+  - tenants
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - stateless-pg.com
+  resources:
+  - tenants/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - stateless-pg.com
+  resources:
+  - tenants/status
+  verbs:
+  - get
+  - patch
+  - update

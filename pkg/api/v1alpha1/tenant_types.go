@@ -324,10 +324,10 @@ type ThrottleConfig struct {
 // SamplingRatio defines sampling configuration for metrics
 // +k8s:openapi-gen=true
 type SamplingRatio struct {
-	// ratio defines the sampling ratio value
+	// ratio defines the sampling ratio value as a string (e.g., "0.5" for 50%)
+	// Valid range: 0.0 to 1.0
 	// +optional
-	// +kubebuilder:validation:Minimum=0
-	// +kubebuilder:validation:Maximum=1
+	// +kubebuilder:validation:Pattern=`^(0(\.\d+)?|1(\.0+)?)$`
 	Ratio *string `json:"ratio,omitempty"`
 }
 
