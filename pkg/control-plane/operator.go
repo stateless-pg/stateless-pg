@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -45,16 +46,28 @@ func New(client client.Client, scheme *runtime.Scheme, logger *slog.Logger, conf
 
 // sync performs the actual reconciliation logic for a tenant
 func (o *Operator) sync(ctx context.Context, name, namespace string) error {
-	logger := o.logger.With("tenant", name, "namespace", namespace)
-	logger.Info("Syncing tenant")
-
-	// Fetch the Tenant resource
 	tenant := &corev1alpha1.Tenant{}
-	key := client.ObjectKey{Name: name, Namespace: namespace}
-	if err := o.nclient.Get(ctx, key, tenant); err != nil {
-		return fmt.Errorf("failed to get tenant: %w", err)
+	if err := o.nclient.Get(ctx, client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}, tenant); err != nil {
+		if apierrors.IsNotFound(err) {
+			// Tenant resource not found, could have been deleted after reconcile request.
+			// Return and don't requeue
+			return nil
+		}
+		return err
 	}
 
-	logger.Info("Tenant synced successfully", "generation", tenant.Spec.Generation, "placementPolicy", tenant.Spec.PlacementPolicy)
+	tenant = tenant.DeepCopy()
+
+	key := fmt.Sprintf("%s/%s", namespace, name)
+	logger := o.logger.With("key", key)
+
+	logger.Info("Sync tenant")
+
+	// TODO: Add tenant reconciliation logic here
+
+	logger.Info("Tenant synced successfully")
 	return nil
 }
