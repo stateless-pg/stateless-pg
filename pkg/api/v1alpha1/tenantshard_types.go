@@ -126,6 +126,18 @@ type TenantShardSpec struct {
 	// +kubebuilder:validation:Minimum=0
 	Generation *int32 `json:"generation,omitempty"`
 
+	// policy defines the high-level placement strategy for how this shard should be set up
+	// Valid values:
+	// - "Attached(0)": Single node, development (default)
+	// - "Attached(1)": HA with failover
+	// - "Attached(2)": HA with multiple replicas
+	// - "Secondary": Onboarding/migration standby
+	// - "Detached": Archived/idle data
+	// +optional
+	// +kubebuilder:default="Attached(0)"
+	// +kubebuilder:validation:Enum="Attached(0)";"Attached(1)";"Attached(2)";Secondary;Detached
+	Policy string `json:"policy,omitempty"`
+
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
 	// reconcilers may be running concurrently
