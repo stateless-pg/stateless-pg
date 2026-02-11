@@ -200,6 +200,15 @@ type TenantShardSpec struct {
 	// +kubebuilder:validation:Enum=Active;Essential;Pause;Stop
 	SchedulingPolicy string `json:"schedulingPolicy,omitempty"`
 
+	// delayedReconcile is set when this shard is enqueued for later reconciliation
+	// due to hitting the reconciliation concurrency limit.
+	//
+	// This flag is cleared when the shard is popped off the delay queue and reconciliation
+	// can proceed. It serves as a signal that reconciliation is pending but deferred.
+	// +optional
+	// +kubebuilder:default=false
+	DelayedReconcile bool `json:"delayedReconcile,omitempty"`
+
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
 	// reconcilers may be running concurrently
