@@ -34,6 +34,12 @@ const (
 	// A lower stripe size distributes ingest load better across shards, but reduces IO amortization.
 	// 16 MiB appears to be a reasonable balance: https://github.com/neondatabase/neon/pull/10510
 	DefaultStripeSize int64 = 16 * 1024 / 8
+
+	// ShardSchedulingPolicy values
+	ShardSchedulingPolicyActive    = "Active"
+	ShardSchedulingPolicyEssential = "Essential"
+	ShardSchedulingPolicyPause     = "Pause"
+	ShardSchedulingPolicyStop      = "Stop"
 )
 
 // TenantShardId globally identifies a particular shard in a particular tenant.
@@ -163,6 +169,37 @@ type TenantShardSpec struct {
 	// +optional
 	IntentState *IntentState `json:"intentState,omitempty"`
 
+	// config is the tenant configuration passed through opaquely to the pageserver
+	// This configuration is identical for all shards in a tenant
+	// +optional
+	Config *TenantConfig `json:"config,omitempty"`
+
+	// preferredNode is the destination pageserver for graceful migration
+	// When set, optimization functions will consider this node the best location
+	// and react appropriately to facilitate the migration
+	// +optional
+	PreferredNode *string `json:"preferredNode,omitempty"`
+
+	// schedulingPolicy enables selective disabling of automatic actions by the controller
+	// This is only set to a non-default value by human intervention, and is reset to Active
+	// when the tenant's placement policy is modified away from Attached.
+	//
+	// Typical uses:
+	// - Pinning a shard to a node (migrate to location & set to Pause)
+	// - Working around a bug (stop flapping while bug is fixed)
+	//
+	// If unsure which policy to use to pin a shard to its current location, use Pause.
+	//
+	// Valid values:
+	// - "Active": Normal mode, tenant locations can be updated for optimization (default)
+	// - "Essential": Disable optimizations, permit scheduling only for PlacementPolicy compliance
+	// - "Pause": No scheduling, leave shard where it is even if unavailable
+	// - "Stop": No reconciling, make no location_conf API calls to pageservers
+	// +optional
+	// +kubebuilder:default="Active"
+	// +kubebuilder:validation:Enum=Active;Essential;Pause;Stop
+	SchedulingPolicy string `json:"schedulingPolicy,omitempty"`
+
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
 	// reconcilers may be running concurrently
@@ -211,6 +248,30 @@ type TenantShardStatus struct {
 	// lastUpdateTime is the last time this status was updated
 	// +optional
 	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
+
+	// consecutiveReconcilesCount is the number of consecutive reconciliation iterations
+	// that have been scheduled for this shard.
+	//
+	// If this reaches MAX_CONSECUTIVE_RECONCILES, the shard is considered "stuck" and will be
+	// ignored when deciding whether optimizations can run. This includes both successful and
+	// failed reconciliations.
+	//
+	// Incremented when a reconciliation is processed, and reset to 0 when no reconciliation
+	// is needed for this shard.
+	// +optional
+	// +kubebuilder:default=0
+	// +kubebuilder:validation:Minimum=0
+	ConsecutiveReconcilesCount int64 `json:"consecutiveReconcilesCount,omitempty"`
+
+	// pendingComputeNotification indicates if there is a pending compute notification
+	// that could not be sent.
+	//
+	// When set to true, calls to get_reconcile_needed will return true and trigger a
+	// Reconciler run. This is the mechanism by which compute notifications are included
+	// in the scope of state that we publish externally in an eventually consistent way.
+	// +optional
+	// +kubebuilder:default=false
+	PendingComputeNotification bool `json:"pendingComputeNotification,omitempty"`
 }
 
 // +genclient
