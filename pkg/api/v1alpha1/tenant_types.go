@@ -300,10 +300,11 @@ type ShardParameters struct {
 	// +kubebuilder:validation:Minimum=1
 	Count int32 `json:"count,omitempty"`
 
-	// stripeSize defines the granularity (in bytes) for distributing keys across shards
-	// Common values: 8192 (8 KB - Default), 16384 (16 KB), 32768 (32 KB)
+	// stripeSize defines the granularity in pages for distributing keys across shards
+	// Default: 2048 pages (16 MiB)
+	// A lower stripe size distributes ingest load better across shards, but reduces IO amortization.
 	// +optional
-	// +kubebuilder:default=8192
+	// +kubebuilder:default=2048
 	// +kubebuilder:validation:Minimum=0
 	StripeSize int64 `json:"stripe_size,omitempty"`
 }

@@ -24,12 +24,29 @@ const (
 	TenantShardKind = "TenantShard"
 	TenantShardKey  = "tenantshard"
 	TenantShardName = "tenantshards"
+
+	// ShardLayout versions for key->shard mapping algorithm
+	ShardLayoutV1     int32 = 1
+	ShardLayoutBroken int32 = 255
+
+	// DefaultStripeSize is the default stripe size in pages (2048 pages = 16 MiB).
+	// A lower stripe size distributes ingest load better across shards, but reduces IO amortization.
+	// 16 MiB appears to be a reasonable balance: https://github.com/neondatabase/neon/pull/10510
+	DefaultStripeSize int64 = 16 * 1024 / 8
 )
 
 // TenantShardSpec defines the desired state of TenantShard.
 // +k8s:openapi-gen=true
 type TenantShardSpec struct {
-	
+	// shardLayout defines the layout version for key->shard mapping algorithm
+	// This version number allows for future upgrades where the key->shard mapping may change
+	// Valid values:
+	// - 1: Current layout version (default)
+	// - 255: Broken/unusable layout
+	// +optional
+	// +kubebuilder:default=1
+	// +kubebuilder:validation:Enum=1;255
+	ShardLayout int32 `json:"shardLayout,omitempty"`
 }
 
 // TenantShardStatus defines the observed state of TenantShard.
