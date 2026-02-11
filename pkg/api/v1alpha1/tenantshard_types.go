@@ -44,6 +44,10 @@ const (
 	// TimelineImportState values
 	TimelineImportStateImporting = "Importing"
 	TimelineImportStateIdle      = "Idle"
+
+	// SplitState values
+	SplitStateIdle      = "Idle"
+	SplitStateSplitting = "Splitting"
 )
 
 // TenantShardId globally identifies a particular shard in a particular tenant.
@@ -222,6 +226,18 @@ type TenantShardSpec struct {
 	// +kubebuilder:default="Idle"
 	// +kubebuilder:validation:Enum=Importing;Idle
 	Importing string `json:"importing,omitempty"`
+
+	// splitting indicates whether this shard is currently being split
+	// When a tenant is being split, all shards with that TenantId will have a SplitState set.
+	// This acts as a guard against other operations such as background reconciliation and
+	// timeline creation.
+	// Valid values:
+	// - "Idle": No shard split in progress (default)
+	// - "Splitting": Shard split is in progress
+	// +optional
+	// +kubebuilder:default="Idle"
+	// +kubebuilder:validation:Enum=Idle;Splitting
+	Splitting string `json:"splitting,omitempty"`
 
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
