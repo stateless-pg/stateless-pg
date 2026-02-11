@@ -28,6 +28,9 @@ import (
 // +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=stateless-pg.com,resources=tenants/finalizers,verbs=update
+// +kubebuilder:rbac:groups=core.stateless-pg.io,resources=tenantshards,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core.stateless-pg.io,resources=tenantshards/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core.stateless-pg.io,resources=tenantshards/finalizers,verbs=update
 
 // Reconcile handles the reconciliation loop for Tenant resources
 func (r *Operator) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
