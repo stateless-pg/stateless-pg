@@ -1,0 +1,744 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: tenantshards.core.stateless-pg.io
+spec:
+  group: core.stateless-pg.io
+  names:
+    categories:
+    - stateless-pg
+    kind: TenantShard
+    listKind: TenantShardList
+    plural: tenantshards
+    shortNames:
+    - ts
+    singular: tenantshard
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.tenantRef.name
+      name: Tenant
+      type: string
+    - jsonPath: .spec.shardIndex
+      name: Shard
+      type: string
+    - jsonPath: .status.assignedPageserver
+      name: Pageserver
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.conditions[?(@.type == 'Available')].status
+      name: Available
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: TenantShard is the Schema for the tenantshards API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of TenantShard
+            properties:
+              config:
+                description: |-
+                  config is the tenant configuration passed through opaquely to the pageserver
+                  This configuration is identical for all shards in a tenant
+                properties:
+                  basebackupCacheEnabled:
+                    default: false
+                    description: basebackupCacheEnabled enables basebackup caching
+                    type: boolean
+                  checkpointDistance:
+                    default: 268435456
+                    description: |-
+                      checkpointDistance defines the size threshold between checkpoints (L0 layer file size)
+                      Default: 268435456 (256 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  checkpointTimeout:
+                    default: 10m
+                    description: |-
+                      checkpointTimeout defines the maximum time between checkpoints
+                      Default: 10 minutes
+                    type: string
+                  compactionAlgorithm:
+                    default: Legacy
+                    description: compactionAlgorithm defines the algorithm to use
+                      for layer compaction
+                    type: string
+                  compactionL0First:
+                    default: true
+                    description: compactionL0First enables L0 compaction pass for
+                      responsiveness
+                    type: boolean
+                  compactionL0Semaphore:
+                    default: true
+                    description: compactionL0Semaphore enables L0 compaction semaphore
+                      for concurrency control
+                    type: boolean
+                  compactionPeriod:
+                    default: 20s
+                    description: |-
+                      compactionPeriod defines how often to run compaction
+                      Default: 20 seconds
+                    type: string
+                  compactionShardAncestor:
+                    default: true
+                    description: compactionShardAncestor enables shard-aware compaction
+                    type: boolean
+                  compactionTargetSize:
+                    default: 134217728
+                    description: |-
+                      compactionTargetSize defines the target layer size for image/delta layers (L1 layer file size)
+                      Default: 134217728 (128 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  compactionThreshold:
+                    default: 10
+                    description: |-
+                      compactionThreshold defines the threshold for triggering compaction
+                      Default: 10 layers
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  compactionUpperLimit:
+                    default: 10
+                    description: |-
+                      compactionUpperLimit defines the maximum layers to compact before memory limits
+                      Default: 10 layers
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  evictionPolicy:
+                    default: NoEviction
+                    description: |-
+                      evictionPolicy defines the page eviction strategy
+                      Default: NoEviction (don't evict pages)
+                      Valid values: NoEviction, AlwaysEvict
+                    enum:
+                    - NoEviction
+                    - AlwaysEvict
+                    type: string
+                  evictionsLowResidenceDurationMetricThreshold:
+                    default: 24h
+                    description: evictionsLowResidenceDurationMetricThreshold defines
+                      the metric threshold for low residence time
+                    type: string
+                  gcCompactionEnabled:
+                    default: true
+                    description: |-
+                      gcCompactionEnabled enables GC compaction pass
+                      Default: true (enabled)
+                    type: boolean
+                  gcCompactionInitialThresholdKb:
+                    default: 5368709
+                    description: |-
+                      gcCompactionInitialThresholdKb defines the initial threshold for GC compaction in KB
+                      Default: 5368709 (5 GB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  gcCompactionRatioPercent:
+                    default: 100
+                    description: |-
+                      gcCompactionRatioPercent defines the compaction ratio percentage for GC
+                      Default: 100%
+                    format: int64
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  gcCompactionVerification:
+                    default: true
+                    description: |-
+                      gcCompactionVerification verifies GC compaction results
+                      Default: true (enabled)
+                    type: boolean
+                  gcHorizon:
+                    default: 67108864
+                    description: |-
+                      gcHorizon defines how far back to retain data
+                      Default: 67108864 (64 MB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  gcPeriod:
+                    default: 1h
+                    description: |-
+                      gcPeriod defines how often to run garbage collection
+                      Default: 1 hour
+                    type: string
+                  heatmapPeriod:
+                    default: 0s
+                    description: heatmapPeriod defines the heatmap refresh period
+                      (0 = disabled)
+                    type: string
+                  imageCreationPreemptThreshold:
+                    default: 3
+                    description: imageCreationPreemptThreshold preempts image creation
+                      if L0 backpressure
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageCreationThreshold:
+                    default: 3
+                    description: |-
+                      imageCreationThreshold defines after how many L0 layers to create an image layer
+                      Default: 3 layers
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageLayerCreationCheckThreshold:
+                    default: 2
+                    description: imageLayerCreationCheckThreshold defines how many
+                      L0 layers to ingest WAL for before checking image creation
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  imageLayerForceCreationPeriod:
+                    description: imageLayerForceCreationPeriod forces image layer
+                      creation at interval
+                    type: string
+                  l0FlushDelayThreshold:
+                    description: l0FlushDelayThreshold defines the L0 flush delay
+                      threshold
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  l0FlushStallThreshold:
+                    description: l0FlushStallThreshold defines the L0 stall threshold
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  laggingWalTimeout:
+                    default: 10s
+                    description: |-
+                      laggingWalTimeout defines the timeout before disconnecting slow WAL receiver
+                      Default: 10 seconds
+                    type: string
+                  lazySlruDownload:
+                    default: false
+                    description: lazySlruDownload enables lazy download strategy
+                    type: boolean
+                  lsnLeaseLength:
+                    default: 10m
+                    description: |-
+                      lsnLeaseLength defines the LSN lease duration for read consistency
+                      Default: 10 minutes
+                    type: string
+                  lsnLeaseLengthForTs:
+                    default: 60s
+                    description: |-
+                      lsnLeaseLengthForTs defines the LSN lease duration for timestamp queries
+                      Default: 60 seconds
+                    type: string
+                  maxLsnWalLag:
+                    default: 1073741824
+                    description: |-
+                      maxLsnWalLag defines the maximum WAL lag allowed (supports 1GB/s throughput)
+                      Default: 1073741824 (1 GB)
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  minResidentSizeOverride:
+                    description: minResidentSizeOverride overrides the minimum resident
+                      size threshold
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  neonClusterRef:
+                    description: neonClusterRef is a reference to the NeonCluster
+                      resource this tenant belongs to
+                    properties:
+                      apiVersion:
+                        description: API version of the referent.
+                        type: string
+                      fieldPath:
+                        description: |-
+                          If referring to a piece of an object instead of an entire object, this string
+                          should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                          For example, if the object reference is to a container within a pod, this would take on a value like:
+                          "spec.containers{name}" (where "name" refers to the name of the container that triggered
+                          the event) or if no container name is specified "spec.containers[2]" (container with
+                          index 2 in this pod). This syntax is chosen only to have some well-defined way of
+                          referencing a part of an object.
+                        type: string
+                      kind:
+                        description: |-
+                          Kind of the referent.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                        type: string
+                      name:
+                        description: |-
+                          Name of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        type: string
+                      namespace:
+                        description: |-
+                          Namespace of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+                        type: string
+                      resourceVersion:
+                        description: |-
+                          Specific resourceVersion to which this reference is made, if any.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+                        type: string
+                      uid:
+                        description: |-
+                          UID of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  pitrInterval:
+                    default: 168h
+                    description: |-
+                      pitrInterval defines the point-in-time recovery window
+                      Default: 7 days retention
+                    type: string
+                  relSizeV2Enabled:
+                    default: false
+                    description: relSizeV2Enabled enables relation size v2 calculation
+                    type: boolean
+                  relsizeSnapshotCacheCapacity:
+                    default: 1000
+                    description: |-
+                      relsizeSnapshotCacheCapacity defines the snapshot cache size for relation size
+                      Default: 1000 entries
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  samplingRatio:
+                    description: samplingRatio defines the sampling configuration
+                      for metrics
+                    properties:
+                      ratio:
+                        description: |-
+                          ratio defines the sampling ratio value as a string (e.g., "0.5" for 50%)
+                          Valid range: 0.0 to 1.0
+                        pattern: ^(0(\.\d+)?|1(\.0+)?)$
+                        type: string
+                    type: object
+                  timelineGetThrottle:
+                    description: timelineGetThrottle defines the rate limiting configuration
+                      for page reads
+                    properties:
+                      enabled:
+                        description: enabled defines if throttling is enabled
+                        type: boolean
+                      rps:
+                        description: rps defines requests per second limit
+                        format: int32
+                        minimum: 0
+                        type: integer
+                    type: object
+                  timelineOffloading:
+                    default: true
+                    description: |-
+                      timelineOffloading enables timeline offloading to secondary nodes
+                      Default: true (enabled)
+                    type: boolean
+                  walreceiverConnectTimeout:
+                    default: 10s
+                    description: |-
+                      walreceiverConnectTimeout defines the timeout for WAL receiver connection
+                      Default: 10 seconds
+                    type: string
+                required:
+                - neonClusterRef
+                type: object
+              delayedReconcile:
+                default: false
+                description: |-
+                  delayedReconcile is set when this shard is enqueued for later reconciliation
+                  due to hitting the reconciliation concurrency limit.
+
+                  This flag is cleared when the shard is popped off the delay queue and reconciliation
+                  can proceed. It serves as a signal that reconciliation is pending but deferred.
+                type: boolean
+              generation:
+                description: |-
+                  generation is used for split-brain safety and to allow multiple pageservers to attach
+                  the same tenant concurrently.
+
+                  When nil, the generation is "None", which represents an incompletely onboarded tenant
+                  that may only run in PlacementPolicy::Secondary.
+
+                  When set, this is the latest generation number. The next time this shard is attached,
+                  this value is incremented and used as the attachment generation.
+
+                  See docs/rfcs/025-generation-numbers.md for details on how generation numbers are used.
+                format: int32
+                minimum: 0
+                type: integer
+              identity:
+                description: identity contains the core shard identification and configuration
+                properties:
+                  count:
+                    description: |-
+                      count defines the total number of shards for the tenant
+                      This must match the shard count in all shards of the same tenant
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  layout:
+                    default: 1
+                    description: |-
+                      layout defines the layout version for key->shard mapping algorithm
+                      This version number allows for future upgrades where the key->shard mapping may change
+                      Valid values:
+                      - 1: Current layout version (default)
+                      - 255: Broken/unusable layout
+                    enum:
+                    - 1
+                    - 255
+                    format: int32
+                    type: integer
+                  number:
+                    description: |-
+                      number defines the shard number within the shard count
+                      Valid range: 0 to (count - 1)
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  stripeSize:
+                    default: 2048
+                    description: |-
+                      stripeSize defines the granularity in pages for distributing keys across shards
+                      Default: 2048 pages (16 MiB)
+                      A lower stripe size distributes ingest load better across shards, but reduces IO amortization.
+                    format: int64
+                    minimum: 0
+                    type: integer
+                required:
+                - count
+                - number
+                type: object
+              importing:
+                default: Idle
+                description: |-
+                  importing indicates the timeline import state for this shard
+                  Used to disallow shard splits while an import is in progress
+                  Valid values:
+                  - "Importing": Timeline import is in progress
+                  - "Idle": No timeline import is in progress (default)
+                enum:
+                - Importing
+                - Idle
+                type: string
+              intentState:
+                description: |-
+                  intentState describes the intended scheduling state of this shard
+                  It specifies where the shard should be attached and the secondary nodes for failover
+                properties:
+                  attached:
+                    description: |-
+                      attached is the node where this shard is attached for serving queries
+                      This is the primary pageserver that handles read/write requests for this shard
+                    type: string
+                  preferredAzId:
+                    description: |-
+                      preferredAzId is the preferred availability zone for compute nodes
+                      We attempt to schedule compute nodes in this AZ to decrease chances of cross-AZ latency
+                    type: string
+                  secondary:
+                    description: |-
+                      secondary contains a list of secondary nodes for failover and replication
+                      When the primary node fails, the shard can be promoted from one of these secondaries
+                    items:
+                      type: string
+                    minItems: 0
+                    type: array
+                type: object
+              policy:
+                default: Attached(0)
+                description: |-
+                  policy defines the high-level placement strategy for how this shard should be set up
+                  Valid values:
+                  - "Attached(0)": Single node, development (default)
+                  - "Attached(1)": HA with failover
+                  - "Attached(2)": HA with multiple replicas
+                  - "Secondary": Onboarding/migration standby
+                  - "Detached": Archived/idle data
+                enum:
+                - Attached(0)
+                - Attached(1)
+                - Attached(2)
+                - Secondary
+                - Detached
+                type: string
+              preferredNode:
+                description: |-
+                  preferredNode is the destination pageserver for graceful migration
+                  When set, optimization functions will consider this node the best location
+                  and react appropriately to facilitate the migration
+                type: string
+              schedulingPolicy:
+                default: Active
+                description: |-
+                  schedulingPolicy enables selective disabling of automatic actions by the controller
+                  This is only set to a non-default value by human intervention, and is reset to Active
+                  when the tenant's placement policy is modified away from Attached.
+
+                  Typical uses:
+                  - Pinning a shard to a node (migrate to location & set to Pause)
+                  - Working around a bug (stop flapping while bug is fixed)
+
+                  If unsure which policy to use to pin a shard to its current location, use Pause.
+
+                  Valid values:
+                  - "Active": Normal mode, tenant locations can be updated for optimization (default)
+                  - "Essential": Disable optimizations, permit scheduling only for PlacementPolicy compliance
+                  - "Pause": No scheduling, leave shard where it is even if unavailable
+                  - "Stop": No reconciling, make no location_conf API calls to pageservers
+                enum:
+                - Active
+                - Essential
+                - Pause
+                - Stop
+                type: string
+              sequence:
+                default: 0
+                description: |-
+                  sequence is a runtime-only counter used to coordinate updates with background reconcilers
+                  A reconciler runs to a particular sequence number to ensure consistency when multiple
+                  reconcilers may be running concurrently
+                format: int64
+                minimum: 0
+                type: integer
+              shardId:
+                description: shardId globally identifies this shard
+                properties:
+                  shardCount:
+                    description: shardCount is the total number of shards for the
+                      tenant
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  shardNumber:
+                    description: |-
+                      shardNumber is the shard number within the shard count
+                      Valid range: 0 to (shardCount - 1)
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  tenantId:
+                    description: tenantId is the reference to the tenant this shard
+                      belongs to
+                    properties:
+                      apiVersion:
+                        description: API version of the referent.
+                        type: string
+                      fieldPath:
+                        description: |-
+                          If referring to a piece of an object instead of an entire object, this string
+                          should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                          For example, if the object reference is to a container within a pod, this would take on a value like:
+                          "spec.containers{name}" (where "name" refers to the name of the container that triggered
+                          the event) or if no container name is specified "spec.containers[2]" (container with
+                          index 2 in this pod). This syntax is chosen only to have some well-defined way of
+                          referencing a part of an object.
+                        type: string
+                      kind:
+                        description: |-
+                          Kind of the referent.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                        type: string
+                      name:
+                        description: |-
+                          Name of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                        type: string
+                      namespace:
+                        description: |-
+                          Namespace of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+                        type: string
+                      resourceVersion:
+                        description: |-
+                          Specific resourceVersion to which this reference is made, if any.
+                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+                        type: string
+                      uid:
+                        description: |-
+                          UID of the referent.
+                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                required:
+                - shardCount
+                - shardNumber
+                - tenantId
+                type: object
+              splitting:
+                default: Idle
+                description: |-
+                  splitting indicates whether this shard is currently being split
+                  When a tenant is being split, all shards with that TenantId will have a SplitState set.
+                  This acts as a guard against other operations such as background reconciliation and
+                  timeline creation.
+                  Valid values:
+                  - "Idle": No shard split in progress (default)
+                  - "Splitting": Shard split is in progress
+                enum:
+                - Idle
+                - Splitting
+                type: string
+            required:
+            - identity
+            - shardId
+            type: object
+          status:
+            description: status defines the observed state of TenantShard
+            properties:
+              assignedPageserver:
+                description: assignedPageserver is the name of the pageserver currently
+                  hosting this shard
+                type: string
+              attachmentGeneration:
+                description: |-
+                  attachmentGeneration tracks the current attachment generation on the pageserver
+                  Used to detect split-brain scenarios
+                format: int64
+                type: integer
+              conditions:
+                description: |-
+                  conditions represent the current state of the TenantShard resource.
+                  Each condition has a unique type and reflects the status of a specific aspect of the resource.
+
+                  Standard condition types include:
+                  - "Available": the shard is fully functional and serving requests
+                  - "Progressing": the shard is being created, split, or updated
+                  - "Degraded": the shard failed to reach or maintain its desired state
+
+                  The status of each condition is one of True, False, or Unknown.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              consecutiveReconcilesCount:
+                default: 0
+                description: |-
+                  consecutiveReconcilesCount is the number of consecutive reconciliation iterations
+                  that have been scheduled for this shard.
+
+                  If this reaches MAX_CONSECUTIVE_RECONCILES, the shard is considered "stuck" and will be
+                  ignored when deciding whether optimizations can run. This includes both successful and
+                  failed reconciliations.
+
+                  Incremented when a reconciliation is processed, and reset to 0 when no reconciliation
+                  is needed for this shard.
+                format: int64
+                minimum: 0
+                type: integer
+              lastUpdateTime:
+                description: lastUpdateTime is the last time this status was updated
+                format: date-time
+                type: string
+              pendingComputeNotification:
+                default: false
+                description: |-
+                  pendingComputeNotification indicates if there is a pending compute notification
+                  that could not be sent.
+
+                  When set to true, calls to get_reconcile_needed will return true and trigger a
+                  Reconciler run. This is the mechanism by which compute notifications are included
+                  in the scope of state that we publish externally in an eventually consistent way.
+                type: boolean
+              phase:
+                description: |-
+                  phase represents the phase of the shard lifecycle
+                  Valid values:
+                  - "Creating": shard is being created
+                  - "Attaching": shard is being attached to pageserver
+                  - "Active": shard is ready to serve requests
+                  - "Detaching": shard is being detached from pageserver
+                  - "Deleted": shard has been deleted
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
