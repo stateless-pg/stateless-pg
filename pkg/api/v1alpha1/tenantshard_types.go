@@ -35,10 +35,30 @@ const (
 	DefaultStripeSize int64 = 16 * 1024 / 8
 )
 
-// TenantShardSpec defines the desired state of TenantShard.
+// ShardIdentity uniquely identifies a shard and its configuration
 // +k8s:openapi-gen=true
-type TenantShardSpec struct {
-	// shardLayout defines the layout version for key->shard mapping algorithm
+type ShardIdentity struct {
+	// number defines the shard number within the shard count
+	// Valid range: 0 to (count - 1)
+	// +required
+	// +kubebuilder:validation:Minimum=0
+	Number int32 `json:"number"`
+
+	// count defines the total number of shards for the tenant
+	// This must match the shard count in all shards of the same tenant
+	// +required
+	// +kubebuilder:validation:Minimum=1
+	Count int32 `json:"count"`
+
+	// stripeSize defines the granularity in pages for distributing keys across shards
+	// Default: 2048 pages (16 MiB)
+	// A lower stripe size distributes ingest load better across shards, but reduces IO amortization.
+	// +optional
+	// +kubebuilder:default=2048
+	// +kubebuilder:validation:Minimum=0
+	StripeSize int64 `json:"stripeSize,omitempty"`
+
+	// layout defines the layout version for key->shard mapping algorithm
 	// This version number allows for future upgrades where the key->shard mapping may change
 	// Valid values:
 	// - 1: Current layout version (default)
@@ -46,7 +66,15 @@ type TenantShardSpec struct {
 	// +optional
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:Enum=1;255
-	ShardLayout int32 `json:"shardLayout,omitempty"`
+	Layout int32 `json:"layout,omitempty"`
+}
+
+// TenantShardSpec defines the desired state of TenantShard.
+// +k8s:openapi-gen=true
+type TenantShardSpec struct {
+	// identity contains the core shard identification and configuration
+	// +required
+	Identity ShardIdentity `json:"identity"`
 }
 
 // TenantShardStatus defines the observed state of TenantShard.
