@@ -40,6 +40,10 @@ const (
 	ShardSchedulingPolicyEssential = "Essential"
 	ShardSchedulingPolicyPause     = "Pause"
 	ShardSchedulingPolicyStop      = "Stop"
+
+	// TimelineImportState values
+	TimelineImportStateImporting = "Importing"
+	TimelineImportStateIdle      = "Idle"
 )
 
 // TenantShardId globally identifies a particular shard in a particular tenant.
@@ -208,6 +212,16 @@ type TenantShardSpec struct {
 	// +optional
 	// +kubebuilder:default=false
 	DelayedReconcile bool `json:"delayedReconcile,omitempty"`
+
+	// importing indicates the timeline import state for this shard
+	// Used to disallow shard splits while an import is in progress
+	// Valid values:
+	// - "Importing": Timeline import is in progress
+	// - "Idle": No timeline import is in progress (default)
+	// +optional
+	// +kubebuilder:default="Idle"
+	// +kubebuilder:validation:Enum=Importing;Idle
+	Importing string `json:"importing,omitempty"`
 
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
