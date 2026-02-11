@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,6 +35,37 @@ const (
 	// 16 MiB appears to be a reasonable balance: https://github.com/neondatabase/neon/pull/10510
 	DefaultStripeSize int64 = 16 * 1024 / 8
 )
+
+// TenantShardId globally identifies a particular shard in a particular tenant.
+//
+// These are written as `<TenantId>-<ShardSlug>`, for example:
+//   # The second shard in a two-shard tenant
+//   072f1291a5310026820b2fe4b2968934-0102
+//
+// If the shard count is unsharded (1), the TenantShardId is written without
+// a shard suffix and is equivalent to the encoding of a TenantId: this enables
+// an unsharded TenantShardId to be used interchangably with a TenantId.
+//
+// The human-readable encoding of an unsharded TenantShardId, such as used in API URLs,
+// is both forward and backward compatible with TenantId: a legacy TenantId can be
+// decoded as a TenantShardId, and when re-encoded it will be parseable as a TenantId.
+// +k8s:openapi-gen=true
+type TenantShardId struct {
+	// tenantId is the reference to the tenant this shard belongs to
+	// +required
+	TenantId v1.ObjectReference `json:"tenantId"`
+
+	// shardNumber is the shard number within the shard count
+	// Valid range: 0 to (shardCount - 1)
+	// +required
+	// +kubebuilder:validation:Minimum=0
+	ShardNumber int32 `json:"shardNumber"`
+
+	// shardCount is the total number of shards for the tenant
+	// +required
+	// +kubebuilder:validation:Minimum=1
+	ShardCount int32 `json:"shardCount"`
+}
 
 // ShardIdentity uniquely identifies a shard and its configuration
 // +k8s:openapi-gen=true
@@ -72,9 +104,21 @@ type ShardIdentity struct {
 // TenantShardSpec defines the desired state of TenantShard.
 // +k8s:openapi-gen=true
 type TenantShardSpec struct {
+	// shardId globally identifies this shard
+	// +required
+	ShardId TenantShardId `json:"shardId"`
+
 	// identity contains the core shard identification and configuration
 	// +required
 	Identity ShardIdentity `json:"identity"`
+
+	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
+	// A reconciler runs to a particular sequence number to ensure consistency when multiple
+	// reconcilers may be running concurrently
+	// +optional
+	// +kubebuilder:default=0
+	// +kubebuilder:validation:Minimum=0
+	Sequence int64 `json:"sequence,omitempty"`
 }
 
 // TenantShardStatus defines the observed state of TenantShard.
