@@ -101,6 +101,26 @@ type ShardIdentity struct {
 	Layout int32 `json:"layout,omitempty"`
 }
 
+// IntentState describes the intended scheduling state of a shard
+// +k8s:openapi-gen=true
+type IntentState struct {
+	// attached is the node where this shard is attached for serving queries
+	// This is the primary pageserver that handles read/write requests for this shard
+	// +optional
+	Attached *string `json:"attached,omitempty"`
+
+	// secondary contains a list of secondary nodes for failover and replication
+	// When the primary node fails, the shard can be promoted from one of these secondaries
+	// +optional
+	// +kubebuilder:validation:MinItems=0
+	Secondary []string `json:"secondary,omitempty"`
+
+	// preferredAzId is the preferred availability zone for compute nodes
+	// We attempt to schedule compute nodes in this AZ to decrease chances of cross-AZ latency
+	// +optional
+	PreferredAzId *string `json:"preferredAzId,omitempty"`
+}
+
 // TenantShardSpec defines the desired state of TenantShard.
 // +k8s:openapi-gen=true
 type TenantShardSpec struct {
@@ -137,6 +157,11 @@ type TenantShardSpec struct {
 	// +kubebuilder:default="Attached(0)"
 	// +kubebuilder:validation:Enum="Attached(0)";"Attached(1)";"Attached(2)";Secondary;Detached
 	Policy string `json:"policy,omitempty"`
+
+	// intentState describes the intended scheduling state of this shard
+	// It specifies where the shard should be attached and the secondary nodes for failover
+	// +optional
+	IntentState *IntentState `json:"intentState,omitempty"`
 
 	// sequence is a runtime-only counter used to coordinate updates with background reconcilers
 	// A reconciler runs to a particular sequence number to ensure consistency when multiple
